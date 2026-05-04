@@ -1,0 +1,94 @@
+# The URL the site will be built for
+base_url = "https://www.devbypen.com"
+theme = "terminus"
+
+# The site title and description; used in feeds by default.
+title = "devbypen"
+description = "this is a4 ide of devbypen"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# When set to "true", a feed is automatically generated.
+generate_feeds = true
+
+# The default author for pages
+author = "devbypen"
+
+# The taxonomies to be rendered for the site and their configuration of the default languages
+# Example:
+#     taxonomies = [
+#       {name = "tags", feed = true}, # each tag will have its own feed
+#       {name = "tags"}, # you can have taxonomies with the same name in multiple languages
+#       {name = "categories", paginate_by = 5},  # 5 items per page for a term
+#       {name = "authors"}, # Basic definition: no feed or pagination
+#     ]
+#
+taxonomies = [
+    { name = "tags", feed = true },
+    { name = "categories", feed = true, paginate_by = 5 },
+]
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = true
+
+[markdown]
+
+# When set to "true", emoji aliases translated to their corresponding
+# Unicode emoji equivalent in the rendered Markdown files. (e.g.: :smile: => 😄)
+render_emoji = true
+
+# Whether footnotes are rendered in the GitHub-style (at the bottom, with back references) or plain (in the place, where they are defined)
+bottom_footnotes = true
+
+# When set to "true", support for GitHub-style alerts, a.k.a. callouts or admonitions, is enabled in the Markdown parser.
+github_alerts = true
+
+[markdown.highlighting]
+# Whether to use inline hex colours ("inline") or CSS classes ("class").
+# See https://www.getzola.org/documentation/content/syntax-highlighting/ for details.
+style = "inline"
+
+# The theme to use for code highlighting.
+# See https://github.com/getzola/giallo?tab=readme-ov-file#themes for the list of allowed values.
+theme = "monokai"
+
+[extra]
+close_responsive_menu_on_resize = true
+favicon_emoji = "👨‍💻"
+fediverse_creator = "@ebkalderon@hachyderm.io"
+layout = "center"
+show_default_author = false
+
+generate_feeds = true
+feed_filenames =["rss.xml"] 
+
+main_menu = [
+    { name = "Blog", url = "blog", trailing_slash = true },
+    { name = "Categories", url = "categories", trailing_slash = true },
+    { name = "Page Source", url = "source", trailing_slash = true },
+    { name = "Github", url = "https://github.com/devbypen", new_tab = true },
+    { name = "About", url = "about", trailing_slash = true },
+    { name = "RSS", url = "about", trailing_slash = true },
+]
+
+socials = [
+    { name = "github", url = "https://github.com/devbypen" },
+    { name = "mastodon", url = "https://hachyderm.io/@ebkalderon" },
+]
+
+header_title = "devbyepn"
+
+[extra.content_security_policy]
+enable = true
+allowed_domains = [
+    { directive = "base-uri", domains = ["'self'"] },
+    { directive = "connect-src", domains = ["'self'", "cloudflareinsights.com"] },
+    { directive = "form-action", domains = ["'self'"] },
+    { directive = "script-src", domains = ["'self'", "static.cloudflareinsights.com", "'sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg=='"] },
+]
+
+[extra.responsive_images]
+widths = [640, 784, 1280, 1920, 2560]
+fallback_width = 1280
+
