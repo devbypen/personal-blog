@@ -98,8 +98,143 @@ We can simple check use `tune2fs` in Linux
 
 *remember replace /dev/sdb3 with your path*
 
-`sudo tune2fs -l /dev/sdb3 | grep -iE "block size|blocks per group"`
+`sudo tune2fs -l /dev/sdb3 | grep -iE "block size|blocks per group|block count"`
 
-![Cat](https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg)
+<img src="/information.webp" />
 
-asdda
+Now, we look into each block group architecture, which is Superblock (copy version),
+group description, block bitmap (we introduce earlier), inode bitmap, inode table,
+data Blks
+
+**SuperBlock** is like guilde map for kernal to know what is the type of file system,
+how many block in that pertition, size of a block, state of partition, for any reason
+if you lose data of super block, the kernel can not mount your partition, and flag
+that pertion with raw data, which means your data will still there but kernel
+can not read because it don't know how to read. In the scenerio, you need 
+**Data Recovery Tools** to raw carve each byte in disk to recover data.
+
+At the early version of ext2, the copy of superblock appear at every block groups 
+because it is very important, but as size of disk increase, each partition can have
+many block groups, and all of that have a copy of super block is waste resource.
+With that problem, new feature called `sparse_super` is added to ext2, when this 
+feature turn on (default always turn on), super block will be saved in Block 0, 
+and backup in Block 1, and all block that is power of 3, 5 or 7. That save a lot 
+of space and still make sure safety.
+
+To understand better about **SuperBlock** we go through its architecture. The 
+**SuperBlock** is always located at byte offset 1024 from beginning of the file, 
+block device or partition formated with Ext2.
+
+```
++----------------+--------------+---------------------------------------------+
+| Offset (bytes) | Size (bytes) | Description                                 |
++----------------+--------------+---------------------------------------------+
+| 0              | 4            | s_inodes_count                              |
+| 4              | 4            | s_blocks_count                              |
+| 8              | 4            | s_r_blocks_count                            |
+| 12             | 4            | s_free_blocks_count                         |
+| 16             | 4            | s_free_inodes_count                         |
+| 20             | 4            | s_first_data_block                          |
+| 24             | 4            | s_log_block_size                            |
+| 28             | 4            | s_log_frag_size                             |
+| 32             | 4            | s_blocks_per_group                          |
+| 36             | 4            | s_frags_per_group                           |
+| 40             | 4            | s_inodes_per_group                          |
+| 44             | 4            | s_mtime                                     |
+| 48             | 4            | s_wtime                                     |
+| 52             | 2            | s_mnt_count                                 |
+| 54             | 2            | s_max_mnt_count                             |
+| 56             | 2            | s_magic                                     |
+| 58             | 2            | s_state                                     |
+| 60             | 2            | s_errors                                    |
+| 62             | 2            | s_minor_rev_level                           |
+| 64             | 4            | s_lastcheck                                 |
+| 68             | 4            | s_checkinterval                             |
+| 72             | 4            | s_creator_os                                |
+| 76             | 4            | s_rev_level                                 |
+| 80             | 2            | s_def_resuid                                |
+| 82             | 2            | s_def_resgid                                |
++----------------+--------------+---------------------------------------------+
+|                     -- EXT2_DYNAMIC_REV Specific --                         |
++----------------+--------------+---------------------------------------------+
+| 84             | 4            | s_first_ino                                 |
+| 88             | 2            | s_inode_size                                |
+| 90             | 2            | s_block_group_nr                            |
+| 92             | 4            | s_feature_compat                            |
+| 96             | 4            | s_feature_incompat                          |
+| 100            | 4            | s_feature_ro_compat                         |
+| 104            | 16           | s_uuid                                      |
+| 120            | 16           | s_volume_name                               |
+| 136            | 64           | s_last_mounted                              |
+| 200            | 4            | s_algo_bitmap                               |
++----------------+--------------+---------------------------------------------+
+|                           -- Performance Hints --                           |
++----------------+--------------+---------------------------------------------+
+| 204            | 1            | s_prealloc_blocks                           |
+| 205            | 1            | s_prealloc_dir_blocks                       |
+| 206            | 2            | (alignment)                                 |
++----------------+--------------+---------------------------------------------+
+|                          -- Journaling Support --                           |
++----------------+--------------+---------------------------------------------+
+| 208            | 16           | s_journal_uuid                              |
+| 224            | 4            | s_journal_inum                              |
+| 228            | 4            | s_journal_dev                               |
+| 232            | 4            | s_last_orphan                               |
++----------------+--------------+---------------------------------------------+
+|                      -- Directory Indexing Support --                       |
++----------------+--------------+---------------------------------------------+
+| 236            | 4 x 4        | s_hash_seed                                 |
+| 252            | 1            | s_def_hash_version                          |
+| 253            | 3            | padding - reserved for future expansion     |
++----------------+--------------+---------------------------------------------+
+|                             -- Other options --                             |
++----------------+--------------+---------------------------------------------+
+| 256            | 4            | s_default_mount_options                     |
+| 260            | 4            | s_first_meta_bg                             |
+| 264            | 760          | Unused - reserved for future revisions      |
++----------------+--------------+---------------------------------------------+
+```
+Next, we will look into **group description**, this is layout of it.
+
+```
+OFFSET   SIZE         KERNEL VARIABLE          MEANING (MAIN FUNCTION)
++--------+------------+------------------------+-------------------------------------------------+
+| 0 byte |  4 Bytes   | bg_block_bitmap        |  The block address of the Block Bitmap.         |
++--------+------------+------------------------+-------------------------------------------------+
+| 4 byte |  4 Bytes   | bg_inode_bitmap        |  The block address of the Inode Bitmap.         |
++--------+------------+------------------------+-------------------------------------------------+
+| 8 byte |  4 Bytes   | bg_inode_table         |  Starting block address of the Inode Table.     |
++--------+------------+------------------------+-------------------------------------------------+
+| 12 byte|  2 Bytes   | bg_free_blocks_count   | Number of free blocks currently in this group.  |
++--------+------------+------------------------+-------------------------------------------------+
+| 14 byte|  2 Bytes   | bg_free_inodes_count   | Number of free Inodes currently in this group.  |
++--------+------------+------------------------+-------------------------------------------------+
+| 16 byte|  2 Bytes   | bg_used_dirs_count     | Number of directories allocated in this group.  |
++--------+------------+------------------------+-------------------------------------------------+
+| 18 byte|  14 Bytes  | (Reserved / Padding)   | Reserved bytes for future use.                  |
++--------+------------+------------------------+-------------------------------------------------+
+```
+if the **Super Block** is general informations about block groups, then 
+**group description** is detail informations about 1 block, it contain informations
+about block address of Block Bitmap, Inode Bitmap, Inode Table, or Number free 
+blocks, Inodes and number of directories. 
+
+Move on to **Block bitmap** (which we mentioned earlier), this is normally located at the first block, or 
+second block if a superblock backup is present. Its location can be determined 
+by reading the "bg_block_bitmap" in **group description**. Each bit is repersent
+the current state of a block in that block group. Where 1 means used and 0 is free.
+
+Similiar, **Inode bitmap** is used to represent current state of **Inode** in the 
+**Inode table**. In the original version of ext2 (revision 0), when **Inode table**
+is crated, 11 first Inodes will be marked with used for system.
+
+> But what is **Inode** and **Inode table**?
+
+Reference:
+1. [The Second Extended File System Internal Layout](https://git-cliff.org/)
+2. [Planned Extensions to the Linux Ext2/Ext3 Filesystem](https://www.usenix.org/legacy/publications/library/proceedings/usenix02/tech/freenix/full_papers/tso/tso.pdf)
+3. [The Second Extended Filesystem](https://www.kernel.org/doc/html/latest/filesystems/ext2.html)
+
+Disclaimer: There is many informations and facts i have not writening about 
+ext2/3/4 in this blog, this is only abstract thing to get feet wet. Feel free to 
+seek more deeper information or question me.
