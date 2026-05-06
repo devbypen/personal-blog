@@ -228,7 +228,87 @@ Similiar, **Inode bitmap** is used to represent current state of **Inode** in th
 **Inode table**. In the original version of ext2 (revision 0), when **Inode table**
 is crated, 11 first Inodes will be marked with used for system.
 
-> But what is **Inode** and **Inode table**?
+But what is **Inode** and **Inode table**?
+
+**Inode** (Index Node) is where metadata of file is saved, which seperate with 
+data blocks (content of file). A file can be directory, a socket, a buffer, 
+character or block device, symbolic link or regular file. This is structure of **Inode**
+
+```
+OFFSET     SIZE          FIELD NAME               MEANING (MAIN FUNCTION)
+  (Bytes)    (Bytes)       (In Kernel)
++---------+--------------+------------------------+----------------------------------------------------+
+| 0       |   2 Bytes    | i_mode                 | File type (regular, directory...) & Permissions.   |
++---------+--------------+------------------------+----------------------------------------------------+
+| 2       |   2 Bytes    | i_uid                  | User ID of the file owner.                         |
++---------+--------------+------------------------+----------------------------------------------------+
+| 4       |   4 Bytes    | i_size                 | Size of the file in bytes.                         |
++---------+--------------+------------------------+----------------------------------------------------+
+| 8       |   4 Bytes    | i_atime                | Last access time (Access Time).                    |
++---------+--------------+------------------------+----------------------------------------------------+
+| 12      |   4 Bytes    | i_ctime                | Inode change time (Change Time).                   |
++---------+--------------+------------------------+----------------------------------------------------+
+| 16      |   4 Bytes    | i_mtime                | File content modification time (Modification Time).|
++---------+--------------+------------------------+----------------------------------------------------+
+| 20      |   4 Bytes    | i_dtime                | Time of file deletion (Deletion Time).             |
++---------+--------------+------------------------+----------------------------------------------------+
+| 24      |   2 Bytes    | i_gid                  | Group ID of the file owner.                        |
++---------+--------------+------------------------+----------------------------------------------------+
+| 26      |   2 Bytes    | i_links_count          | Number of hard links pointing to this Inode.       |
++---------+--------------+------------------------+----------------------------------------------------+
+| 28      |   4 Bytes    | i_blocks               | Total blocks (usually 512B sectors) allocated.     |
++---------+--------------+------------------------+----------------------------------------------------+
+| 32      |   4 Bytes    | i_flags                | Special status flags of the file.                  |
++---------+--------------+------------------------+----------------------------------------------------+
+| 36      |   4 Bytes    | i_osd1                 | Reserved for Operating System (OS Dependent 1).    |
++---------+--------------+------------------------+----------------------------------------------------+
+| 40      |  60 Bytes    | i_block [15 x 4]       | CORE: Array of 15 pointers (4B each) pointing to   |
+|         |              |                        | the actual Data Blocks containing the file data.   |
++---------+--------------+------------------------+----------------------------------------------------+
+| 100     |   4 Bytes    | i_generation           | File generation/version (mainly for Network FS).   |
++---------+--------------+------------------------+----------------------------------------------------+
+| 104     |   4 Bytes    | i_file_acl             | File ACL (Access Control List).                    |
++---------+--------------+------------------------+----------------------------------------------------+
+| 108     |   4 Bytes    | i_dir_acl              | Dir ACL (For regular files, this is i_size_high    |
+|         |              |                        | to support file sizes > 4GB).                      |
++---------+--------------+------------------------+----------------------------------------------------+
+| 112     |   4 Bytes    | i_faddr                | Fragment address (Rarely used/Obsolete).           |
++---------+--------------+------------------------+----------------------------------------------------+
+| 116     |  12 Bytes    | i_osd2                 | Reserved for Operating System (OS Dependent 2).    |
++---------+--------------+------------------------+----------------------------------------------------+
+                       [ TOTAL OF 128 BYTES ]
+```
+
+The important we need to notice that `i_block` field have limit size of pointers 
+so to extend this, we need cascade hierrachy. There are 4 type of **block_pointer**
+1. Direct Block
+2. Indirect Block
+3. Double Indirect Block
+4. Triple Indirect Block. 
+
+Regurlar, Each Inode have 12 direct pointers, 1 single indirect, 1 double indirect,
+1 triple indirect. I can give you some number to help you know power of this archituecture.
+
+```
+Block_size = 4KB
+1 pointer = 4 Bytes
+
+=> 1 block cointains 1024 pointers (4096/4)
+
+Direct: 12 * 4KB = 48KB
+Single Direct: 1024 * 4KB ~ 4MB
+Double Indirect: 1024 * 1024 * 4KB ~ 4GB
+Triple Indirect: 1024 * 1024 * 1024 * 4KB ~ 4TB
+```
+With this, small file will have access time very fast, but big file will take 
+longer time but still available (trade off between Performance and Scalability)
+
+So, the **Inode Table** is simply array of **Inode**, there is one **Inode Table**
+per **Block Group** and it can be located by reading `bg_inode_table` in its 
+group description.
+
+Wait... Why a directory, a socket, a buffer, character or block device, symbolic link
+also called file? This is the most theory in Linux "Everything is file". 
 
 Reference:
 1. [The Second Extended File System Internal Layout](https://git-cliff.org/)
