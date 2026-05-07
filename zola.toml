@@ -66,18 +66,17 @@ feed_filenames =["rss.xml"]
 main_menu = [
     { name = "Blog", url = "blog", trailing_slash = true },
     { name = "Categories", url = "categories", trailing_slash = true },
-    { name = "Page Source", url = "source", trailing_slash = true },
     { name = "Github", url = "https://github.com/devbypen", new_tab = true },
     { name = "About", url = "about", trailing_slash = true },
-    { name = "RSS", url = "about", trailing_slash = true },
+    { name = "RSS", url = "RSS", trailing_slash = true },
 ]
 
 socials = [
     { name = "github", url = "https://github.com/devbypen" },
-    { name = "mastodon", url = "https://hachyderm.io/@ebkalderon" },
+    { name = "mastodon", url = "https://hachyderm.io/@devbypen", new_tab = true },
 ]
 
-header_title = "devbyepn"
+header_title = "devbypen"
 
 [extra.content_security_policy]
 enable = true

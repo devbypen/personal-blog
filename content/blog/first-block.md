@@ -1,15 +1,14 @@
 +++
 title = "All thing you need to know about ext4 filesystem"
-date = 2026-04-27
+date = "2026-04-27"
 
-description = "Knowing deeply about what we interact daily"
-category = "linux"
+description = "Diving deep into the things we interact daily"
+categories = ["linux"]
 +++
 
-In day-to-day job of software engineer, we do things with file many many time,
-that lead to understand about filesystem is extreme useful to get all potential
-and power of that **weapon**.
-
+As software engineers, we interact with files constantly. Understanding how 
+filesystems actually work under the hood is extremely useful for unlocking the 
+full potential and power of this awesome weapon.
 > But why is Ext4 ?
 
 Currently, Linux filesystem is used Ext4 as standard, and i work much with Linux. In many ways, Ext4 is a 
@@ -26,7 +25,7 @@ best implement in scenerio but this article place Ext4 first.
 
 Ext2 is incredibly fast and lightweight, 
 but data is not **durable**, if a system lost power or crashed while writing data
-to an ext2 drive, the filesystem was left in an inconsistent state. Upon rebooting,
+to an ext2 disk, the filesystem was left in an inconsistent state. Upon rebooting,
 the system had to run filesystem check `fsck` across the entire drive to find and 
 fix orphaned files or currupted blocks,as the result, we will lost unmounted data
 
@@ -387,20 +386,121 @@ relative path. For symlink have fewer 60 bytes, the data save at `i_block` field
 inode itself. And this lead to extreme fast when we don't need extra block data 
 to save link.
 
-Ext2 is a beatiful design of filesystem which still the core of ext3/ext4, 
-and it have Scalability part on it own, as the result ext3/ext4 add feature to get better.
+Ext2 is a beatiful design of filesystem which still the core of ext3/ext4, next
+we look into ext3 filesystem.
+> Ext3 = Ext2 + Journaling 
 
-> Ext3 
+As we know, when you save a file in Ext2 file system, the kernel need to do many
+things with disk in different postition:
+1. Write Data Block (content of file)
+2. Write Inode (metadata)
+3. Write Block Bitmap and Inode Bitmap (marked unused or used)
+4. Write Directory Entry (Add file to direcory)
 
-> Ext4
+For any reason, we can't go through 4 step above, ext2's structure will destroy,
+and become inconsistency.
+
+Imagine you come to giant library, and you gave back the librian the Harry Potter 
+book. Without Journaling, the librian will go to the book shelf, put it in 
+position 5, and write to the book management app that book in postion 5. But 
+what happen when something occur when librian have not writen informtion to book 
+management. The result is book still there but invisible for everybody because 
+no one know in that position have a Harry Potter book (because they have to search
+book management app first then librian will take that book for them). 
+
+In this situation, we can define that Kernel is librian, book management app is 
+metatdata (SuperBlock, Inode, Inode Table), and the book shelf is directory, book
+is block data. The problem is worse when it come to computer because when some thing 
+bad happen (librian not write to book management app), the system need to check 
+all book shelf, and correct one by one. This can resolve by Journaling but we have
+trade off.
+1. flag `data=journal`, copy all data, metadata, everything need to do to journaling.
+In the example, it is like librian photo entire book, write to book management app, 
+marked with signature. Then she will put real book to shelf. But it lead to slowest
+performance because we do exact 2 time with 1 request (journal + real request)
+2. flag `data=ordered`, it will skip photo book part, instead the librian will 
+put book into shelf, then write to book management app (sound similar without 
+jouranling feature right?), but if something happen, the journaling have no thing 
+report about that situation, so the file is real invisible with kernel, and 
+everything still look good. With this, performance is better because we skip copy 
+part.
+3. flag `data=writeback`, instead of put book into shelf immediately, the librian 
+stack in the table, then sign the book management app that already put on the shelf, 
+then when she have 2-3 book to carry to that shelf, or available, she will do it.
+This lead to crash and security problem, if someone put water into book, the 
+book will destroy or smth bad happen, or when book is not put into shelf, someone 
+open the book management app, and see Harry Potter book, he want it, and take it, 
+but what he receive is John Wick's book (which have a gun inside, and some assasin
+coin!), because the system not update the old file. That lead to dangerous thing 
+but have fastest performance
+
+<img src="/johnwick.jpg" />
+
+> That journaling part is interesting, but what problem that lead to Ext4
+
+The limitation of ext3 is disk and parition size. In Ext3 structure, it design 
+for 32bits interger, which mean highest number it can represent is 2^32 - 1,
+each block size ~ 4KB => We can format disk ~ 16TB, but 2TB for a file (15 pointer
+structure `i_block`). Time go by, the size expand quickly, Ext3 nolonger adapt 
+demand, so Ext4 appear with 3 main feature: 
+1. Extents
+2. Delay Allocation
+3. Uninitialized Block
+
+**Extents** replace array 15 pointer `i_block`, instead of list every block, 
+extent simple save `start_block` and `data_length`.
+
+```
+[ 60 Bytes (i_block) inside the ext4 Inode ]
+
+  Offset  Size         Structure
++-------+------------+-------------------------------------------------------------+
+| 0     |  12 Bytes  | EXTENT HEADER (Tree management header)                      |
+|       |            | - eh_magic  : Extent signature/magic number (0xF30A)        |
+|       |            | - eh_entries: Number of valid entries currently in this node|
+|       |            | - eh_depth  : Depth of the tree (0 = Leaf node pointing     |
+|       |            |               directly to Data)                             |
++-------+------------+-------------------------------------------------------------+
+| 12    |  12 Bytes  | EXTENT ENTRY #1 (Extent Record #1)                          |
+|       |            | - ee_block  : Starting logical block (Example: 0)           |
+|       |            | - ee_len    : Length of the Extent (Example: 25,600 blocks) |
+|       |            | - ee_start  : Starting physical block on disk (48-bit)      |
++-------+------------+-------------------------------------------------------------+
+| 24    |  12 Bytes  | EXTENT ENTRY #2 (Only used if the file is fragmented)       |
++-------+------------+-------------------------------------------------------------+
+| 36    |  12 Bytes  | EXTENT ENTRY #3 (Only used if the file is fragmented)       |
++-------+------------+-------------------------------------------------------------+
+| 48    |  12 Bytes  | EXTENT ENTRY #4 (Only used if the file is fragmented)       |
++-------+------------+-------------------------------------------------------------+
+               [ TOTAL: 12 + (12 x 4) = EXACTLY 60 BYTES ]
+```
+
+**Delayed Allocation** reduce the fragment, when a system write a big file, 
+at ext3, system call `write()`  rapidly, ext3 immediately give kernel avaiable 
+file => 1 big file can be fragment all the system. When come to Ext4, when system 
+call `write()`, ext4 refuse to give block address, it copy data to Ram (Page cache)
+and update the logical Block, then when data is large enough (batching) or Kernel run out of Ram,
+it will flush to disk, Ext4 find range of blocks fit data, so data is continious.
+
+**Uninitalized Block** With ext3, when need to check 16TB disk with `e2fsck` (restart
+after currupt) will take 2-10 hours to go through all inode to check. Ext4 simple 
+add to Group Description 2 field `EXT4_BG_INODE_UNINIT` and `EXT4_BG_BLOCK_UNINIT`
+mark what block group don't have any inode, so don't need to group through that 
+block group
 
 > Conclusion
+
+The evolution from Ext2 to Ext4 perfectly illustrates how Linux engineers 
+continually solve complex bottlenecks in storage technology, aslo show the art of 
+software. At the end of the day, knowing how the computer actually saves a file 
+under the hood helps us write smarter, better software.
 
 Reference:
 1. [The Second Extended File System Internal Layout](https://giis.co.in/ext2.pdf)
 2. [Planned Extensions to the Linux Ext2/Ext3 Filesystem](https://www.usenix.org/legacy/publications/library/proceedings/usenix02/tech/freenix/full_papers/tso/tso.pdf)
 3. [The Second Extended Filesystem](https://www.kernel.org/doc/html/latest/filesystems/ext2.html)
+3. [The new ext4 filesystem: current status and future plans](https://www.kernel.org/doc/ols/2007/ols2007v2-pages-21-34.pdf)
 
-Disclaimer: There is many informations and facts i have not writening about 
+Disclaimer: There is some low-level informations i have not writen about 
 ext2/3/4 in this blog, this is only abstract thing to get feet wet. Feel free to 
 seek more deeper information or question me.

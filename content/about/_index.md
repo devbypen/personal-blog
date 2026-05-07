@@ -12,8 +12,8 @@ spend most of my time diving into books, understand human behavior,
 fundamental which build the art of trading, optimizing automated trading logic. 
 
 ### Philosophy & Workflow
-I am a huge **open-source enthusiast** and seeking first open source project to 
-contribute. I believe in the power of deep, dedicated work.
+I am a huge **open-source enthusiast** focused on crafting reliable software 
+and continuously improving as an engineer. I believe in the power of deep, dedicated work.
 
 Despite working heavily with digital systems, my absolute favorite tool is 
 what I call **A4IDE**—a blank sheet of A4 paper and a good pen. I usually 
