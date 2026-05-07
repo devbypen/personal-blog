@@ -3,6 +3,7 @@ title = "All thing you need to know about ext4 filesystem"
 date = 2026-04-27
 
 description = "Knowing deeply about what we interact daily"
+category = "linux"
 +++
 
 In day-to-day job of software engineer, we do things with file many many time,
@@ -307,11 +308,96 @@ So, the **Inode Table** is simply array of **Inode**, there is one **Inode Table
 per **Block Group** and it can be located by reading `bg_inode_table` in its 
 group description.
 
-Wait... Why a directory, a socket, a buffer, character or block device, symbolic link
-also called file? This is the most theory in Linux "Everything is file". 
+> Wait... Why a **directory, a socket, a buffer, character or block device, symbolic link**
+also called file? 
+
+This is the most theory in Linux "Everything is file". But those
+are special file, and in filesystem, we care much more on **directory** and 
+**symbolic link** because **socket**, **buffer**, **character or block device**,
+have no data on `Data_block`, the way handle it relate much more with kernel.
+
+
+**Directory** is like a contact books, when you want to call Devbypen, you search
+his name and call the number. It's `data_block` is informations of contact books.
+In revision 0, directories could only be stored in a linked list. Revision 1 
+and later introduced indexed directory, which is backward compatible with linked 
+list directory. 
+
+This is linked list directories structure:
+
+```
+OFFSET     SIZE          FIELD NAME               MEANING (MAIN FUNCTION)
++---------+--------------+------------------------+----------------------------------------------------+
+| 0       |   4 Bytes    | inode                  | Inode number of the file or subdirectory.          |
++---------+--------------+------------------------+----------------------------------------------------+
+| 4       |   2 Bytes    | rec_len                | Directory entry length (must be a multiple of 4).  |
++---------+--------------+------------------------+----------------------------------------------------+
+| 6       |   1 Byte     | name_len               | Length of the file name (maximum 255 characters).  |
++---------+--------------+------------------------+----------------------------------------------------+
+| 7       |   1 Byte     | file_type              | File type indicator (e.g., 1=File, 2=Directory).   |
++---------+--------------+------------------------+----------------------------------------------------+
+| 8       | 0-255 Bytes  | name                   | The actual file name characters.                   |
++---------+--------------+------------------------+----------------------------------------------------+
+```
+
+Using the standard linked list directory format can become very slow once the number 
+of file starts growing with O(N) when search file. To improve perfomance, a hashed 
+index was used with O(log N). This is its structure:
+
+```
+OFFSET     SIZE          FIELD NAME               DESCRIPTION
+  (Bytes)    (Bytes)
+=======================================================================================
+  -- Linked Directory Entry: "." (Current Directory) --
++---------+--------------+------------------------+-----------------------------------+
+| 0       |   4 Bytes    | inode                  | Inode number of this directory.   |
+| 4       |   2 Bytes    | rec_len                | Record length (12 bytes).         |
+| 6       |   1 Byte     | name_len               | Length of the name (1).           |
+| 7       |   1 Byte     | file_type              | File type (EXT2_FT_DIR = 2).      |
+| 8       |   1 Byte     | name                   | The name string: "."              |
+| 9       |   3 Bytes    | (padding)              | Padding to align to 4 bytes.      |
++---------+--------------+------------------------+-----------------------------------+
+  -- Linked Directory Entry: ".." (Parent Directory) --
++---------+--------------+------------------------+-----------------------------------+
+| 12      |   4 Bytes    | inode                  | Inode number of parent directory. |
+| 16      |   2 Bytes    | rec_len                | Spans to the end of the block     |
+|         |              |                        | (e.g., 4084 for a 4KB blocksize). |
+| 18      |   1 Byte     | name_len               | Length of the name (2).           |
+| 19      |   1 Byte     | file_type              | File type (EXT2_FT_DIR = 2).      |
+| 20      |   2 Bytes    | name                   | The name string: ".."             |
+| 22      |   2 Bytes    | (padding)              | Padding to align to 4 bytes.      |
++---------+--------------+------------------------+-----------------------------------+
+  -- Indexed Directory Root Information Structure (dx_root) --
++---------+--------------+------------------------+-----------------------------------+
+| 24      |   4 Bytes    | reserved               | Reserved space (must be zero).    |
+| 28      |   1 Byte     | hash_version           | Hash algorithm used (e.g. Half MD5) |
+| 29      |   1 Byte     | info_length            | Length of this info structure (8).|
+| 30      |   1 Byte     | indirect_levels        | Depth of the HTree (0 or 1).      |
+| 31      |   1 Byte     | reserved               | Unused flags / Reserved.          |
++---------+--------------+------------------------+-----------------------------------+
+```
+
+We need to look at Parent Directory (..) 16 (2 Bytes) `rec_len`. To archive compatible with linked list, 
+Hashed Index Tree spans this value to 4084 (4084 + 12 (inode) = 4096) full Block
+size, tricked old system that Others field do not exist, then treat them like normal.
+
+Now move on **symbolic link** (also symlink or softlink) is a special file that 
+contains a reference to another file or directory in a form of an absolute or 
+relative path. For symlink have fewer 60 bytes, the data save at `i_block` field 
+inode itself. And this lead to extreme fast when we don't need extra block data 
+to save link.
+
+Ext2 is a beatiful design of filesystem which still the core of ext3/ext4, 
+and it have Scalability part on it own, as the result ext3/ext4 add feature to get better.
+
+> Ext3 
+
+> Ext4
+
+> Conclusion
 
 Reference:
-1. [The Second Extended File System Internal Layout](https://git-cliff.org/)
+1. [The Second Extended File System Internal Layout](https://giis.co.in/ext2.pdf)
 2. [Planned Extensions to the Linux Ext2/Ext3 Filesystem](https://www.usenix.org/legacy/publications/library/proceedings/usenix02/tech/freenix/full_papers/tso/tso.pdf)
 3. [The Second Extended Filesystem](https://www.kernel.org/doc/html/latest/filesystems/ext2.html)
 
