@@ -1,12 +1,13 @@
 .header {
     display: flex;
     flex-direction: column;
+}
 
-    @media (max-width: 684px) {
+@media (max-width: 684px) {
+    .header {
         flex-direction: row;
     }
 }
-
 .header-container {
     display: flex;
     align-items: center;
@@ -17,20 +18,15 @@
 .header-logo-container {
     display: flex;
     flex: 1;
-
-    &::after {
-        content: '';
-        display: block;
-        margin-inline-start: 8px;
-        width: 100%;
-        background: repeating-linear-gradient(90deg, var(--accent-color), var(--accent-color) 2px, transparent 0, transparent 10px);
-    }
-
-    a {
-        flex: 0 0 auto;
-        max-width: 100%;
-        text-decoration: none;
-    }
+}
+.header-logo-container::after {
+    content: '';
+    display: block;
+    /* ... */
+}
+.header-logo-container a {
+    flex: 0 0 auto;
+    /* ... */
 }
 
 .logo {

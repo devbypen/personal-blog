@@ -3,7 +3,9 @@ title = "All thing you need to know about ext4 filesystem"
 date = "2026-04-27"
 
 description = "Diving deep into the things we interact daily"
-categories = ["linux"]
+
+[taxonomies]
+categories = ["Linux"]
 +++
 
 As software engineers, we interact with files constantly. Understanding how 

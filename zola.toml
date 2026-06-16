@@ -11,6 +11,7 @@ compile_sass = true
 
 # When set to "true", a feed is automatically generated.
 generate_feeds = true
+feed_filenames = ["rss.xml"]
 
 # The default author for pages
 author = "devbypen"
@@ -60,20 +61,15 @@ fediverse_creator = "@ebkalderon@hachyderm.io"
 layout = "center"
 show_default_author = false
 
-generate_feeds = true
-feed_filenames =["rss.xml"] 
-
 main_menu = [
     { name = "Blog", url = "blog", trailing_slash = true },
     { name = "Categories", url = "categories", trailing_slash = true },
     { name = "Github", url = "https://github.com/devbypen", new_tab = true },
-    { name = "About", url = "about", trailing_slash = true },
-    { name = "RSS", url = "RSS", trailing_slash = true },
+    { name = "About", url = "", trailing_slash = true },
+    { name = "RSS", url = "rss.xml", trailing_slash = false },
 ]
 
 socials = [
-    { name = "github", url = "https://github.com/devbypen" },
-    { name = "mastodon", url = "https://hachyderm.io/@devbypen", new_tab = true },
 ]
 
 header_title = "devbypen"

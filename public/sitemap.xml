@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://www.devbypen.com/</loc>
+    </url>
+    <url>
+        <loc>https://www.devbypen.com/blog/</loc>
+    </url>
+    <url>
+        <loc>https://www.devbypen.com/blog/first-blog/</loc>
+        <lastmod>2026-04-27</lastmod>
+    </url>
+    <url>
+        <loc>https://www.devbypen.com/categories/</loc>
+    </url>
+    <url>
+        <loc>https://www.devbypen.com/categories/linux/</loc>
+    </url>
+    <url>
+        <loc>https://www.devbypen.com/categories/linux/page/1/</loc>
+    </url>
+    <url>
+        <loc>https://www.devbypen.com/tags/</loc>
+    </url>
+</urlset>
