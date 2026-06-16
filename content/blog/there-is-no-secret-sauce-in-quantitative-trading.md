@@ -19,7 +19,7 @@ invincible.
 
 > The Noodle Soup 
 "There is no secret ingredient. To make something special, you just have to 
-believe it's special." — Mr. Ping
+believe it's special."  Mr. Ping
 
 If you've watched Kung Fu Panda (and if you haven't, stop reading, go watch it,
 and come back), you'll remember that Po's father, Mr. Ping, always drew massive 
@@ -40,12 +40,12 @@ The extraordinary results come from the passion and the love you pour into the
 art of building it.
 
 Imagine running that noodle soup restaurant. You wake up at 3 A.M. You scrub 
-every single dish, wipe down every table, and clean every dark corner—even the 
+every single dish, wipe down every table, and clean every dark corner, even the 
 corners no customer will ever see. You do it because you love the restaurant 
 and you care about the craft. As Steve Jobs once said, a great carpenter will 
 use the best quality wood even for the back of the cabinet that faces the wall.
 
-That applies to everything, and especially to quant trading. You meticulously 
+That applies to everything, and especially to quant trading. You gently 
 care for your WebSocket (WSS) connections. You build robust data pipelines. You
 patiently handle and scrub dirty data. You cook the core logic with absolute 
 care and passion.
@@ -60,7 +60,7 @@ any more than you can force enlightenment. Like a monk, when you desperately wan
 to be mindful, you never get it. You just have to sit, breathe, and do the work.
 
 You have to let go of the external noise. Believe in yourself, trust your dream,
-and trust your tech stack—whether that's TypeScript, Rust, Python, or C++. Trust 
+and trust your tech stack, whether that's TypeScript, Rust, Python, or C++. Trust 
 the daily grind of experimenting in public and building creative things.
 
 <img src="/po.jpg" />
@@ -73,8 +73,8 @@ hedge funds market themselves as having the "best mathematical brains" and
 impossibly complex portfolios because they have to. They need beautifully 
 complex portfolios to call for outside investment. It's marketing.
 
-If you enter this field just because you want acceptance from others—if you 
-just want the title of the "gold medal Olympic, 1M dollar strategy guy"—you 
+If you enter this field just because you want acceptance from others, if you 
+just want the title of the "gold medal Olympic, 1M dollar strategy guy", you 
 are walking straight into the Tai Lung trap. Tai Lung destroyed everything 
 looking for the Dragon Scroll because his ego desperately needed external 
 validation. When the thing you do and believe in isn't actually you, but 
@@ -83,14 +83,14 @@ will eventually turn, and when it does, that ego breaks.
 
 Lao Tzu once said, “He who knows others is wise; he who knows himself is 
 enlightened.” The real journey in quant trading is the one you face on the inside. 
-It's about confronting your own dark parts—your impatience, your fear, and your ego.
+It's about confronting your own dark parts, your impatience, your fear, and your ego.
 
 <img src="/tailung.jpg" />
 
 > The journey of Sifu with Po 
 
 Po didn't learn Kung Fu through fancy, complex theory from his master. He 
-learned it through the dumpling training—doing it again and again, facing 
+learned it through the dumpling training, doing it again and again, facing 
 resistance, and developing lightning-fast reflexes to overcome severe disadvantages.
 
 The journey of growth in quantitative trading is exactly like Sifu sparring with 
@@ -126,11 +126,11 @@ corporate marketing shifted to frame it as this highly complex, elite,
 male-dominated field.
 
 We live in a world where so much of what we see is just a manufactured 
-narrative—the result of corporate marketing and fake prestige. The truth is 
+narrative, the result of corporate marketing and fake prestige. The truth is 
 much simpler. If you have a genuine love for the craft, you belong here. 
 Whether you love the elegant beauty of mathematics, the deep psychology of 
 human markets, the pure mechanics of finance, playing intricate mind games with 
-numbers, or honestly, if you just simply love making good money—you can be a quant.
+numbers, or honestly, if you just simply love making good money, that it, you can be a quant.
 
 Don't care about the external noise. Be mindful, become unbeatable, and believe 
 in yourself. You are the secret ingredient to your own career.
@@ -141,7 +141,7 @@ restaurant: even if there is no secret sauce, you still need the noodles, the
 water, the salt, and a good boiling pan to make the soup. You can't cook without 
 the basic ingredients.
 
-I have a deep passion for all three of these pillars—finance, code, and math 
+I have a deep passion for all three of these pillars: finance, code, and math 
 and I am so excited to continue sharing my journey, my code, and my ideas with 
 all of you in the future. There is an ocean of great information and books out 
 there to help you enter this field. If you ever have any questions or don't know 
