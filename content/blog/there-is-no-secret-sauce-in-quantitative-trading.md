@@ -1,8 +1,12 @@
 +++
 title = "The Secret Sauce in Quantitative Trading"
+
 date = "2026-06-11"
+
 description = "The truth about the fancy world you hear others talk about"
-categories = ["quantitative-trading"]
+
+[taxonomies]
+categories = ["quant-trading"]
 +++
 
 *TLDR: There is no secret sauce in quantitative trading*
