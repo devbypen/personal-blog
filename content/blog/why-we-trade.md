@@ -316,6 +316,10 @@ you can begin to understand **how they behave**.
 Understanding your counterparty is one of the most powerful edges you can have.
 That is what makes trading so diverse and so beautiful. This is only the beginning.
 
+And yes, maybe you heard about boring thing like trading is zero sum game, 
+because total someone lost + total someone profit = 0. It's true, trading is 
+zero sum in finance, but is not zero sum in economic. 
+
 In the next article, we'll explore how different participants create 
 opportunities in the market, and why competing against a speculator requires a 
 completely different mindset from trading against a hedger or an investor.
