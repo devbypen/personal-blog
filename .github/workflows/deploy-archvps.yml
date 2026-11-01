@@ -1,0 +1,33 @@
+# Copied into each repo as .github/workflows/deploy-archvps.yml
+# On every push to the default branch (incl. merged PRs) push that commit to
+# archVps, whose post-receive hook resets ~/projects/<repo> to it.
+name: Deploy to archVps
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: archvps-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push to archVps
+        env:
+          SSH_KEY: ${{ secrets.ARCHVPS_DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ secrets.ARCHVPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/archvps && chmod 600 ~/.ssh/archvps
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/archvps -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
+          git push --force "ssh://a4ide@123.16.18.117:2223/~/git/${GITHUB_REPOSITORY#*/}.git" "HEAD:refs/heads/${GITHUB_REF_NAME}"
