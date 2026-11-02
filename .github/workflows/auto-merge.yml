@@ -1,0 +1,48 @@
+# Auto-merge every pull request (owner's default, 2026-11-02).
+#
+# Turn it off for one repo (require review instead) WITHOUT editing code:
+#   gh variable set AUTO_MERGE --body false -R devbypen/<repo>
+# Turn it back on:  gh variable delete AUTO_MERGE -R devbypen/<repo>
+#
+# Draft PRs are skipped. A PR that can't merge (conflict) fails this job and stays open.
+# Merges made with GITHUB_TOKEN don't fire `push` workflows, so when the PR targets the
+# default branch, the archVps deploy is started explicitly (workflow_dispatch is allowed).
+name: Auto-merge PR
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  merge:
+    if: vars.AUTO_MERGE != 'false' && !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          # GitHub needs a moment to compute mergeability after a push.
+          for i in 1 2 3 4 5 6; do
+            state=$(gh pr view "$PR" -R "$REPO" --json mergeable --jq .mergeable)
+            [ "$state" != UNKNOWN ] && break; sleep 5
+          done
+          [ "$state" = MERGEABLE ] || { echo "PR #$PR is not mergeable ($state): resolve conflicts, then push again"; exit 1; }
+          gh pr merge "$PR" -R "$REPO" --merge --delete-branch
+      - name: Deploy to archVps
+        if: github.event.pull_request.base.ref == github.event.repository.default_branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh workflow view deploy-archvps.yml -R "${{ github.repository }}" >/dev/null 2>&1; then
+            gh workflow run deploy-archvps.yml -R "${{ github.repository }}" --ref "${{ github.event.repository.default_branch }}"
+          else
+            echo "no deploy-archvps workflow in this repo"
+          fi
